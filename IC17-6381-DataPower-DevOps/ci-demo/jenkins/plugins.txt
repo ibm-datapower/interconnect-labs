@@ -71,3 +71,4 @@ structs:1.6
 workflow-durable-task-step:2.9
 workflow-cps-global-lib:2.6
 jquery-detached:1.2.1
+ansicolor:0.4.3
