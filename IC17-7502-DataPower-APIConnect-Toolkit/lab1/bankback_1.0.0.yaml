@@ -1,0 +1,47 @@
+swagger: '2.0'
+info:
+  x-ibm-name: bankback
+  title: BankBack
+  version: 1.0.0
+schemes:
+  - https
+host: $(catalog.host)
+basePath: /bankback
+consumes:
+  - text/xml
+produces:
+  - text/xml
+securityDefinitions:
+  clientIdHeader:
+    type: apiKey
+    in: query
+    name: client_id
+security:
+  - clientIdHeader: []
+x-ibm-configuration:
+  testable: true
+  enforced: true
+  cors:
+    enabled: true
+  assembly:
+    execute:
+      - xslt:
+          title: xslt
+          input: true
+          source: "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<xsl:stylesheet extension-element-prefixes=\"dp\" version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\" xmlns:dp=\"http://www.datapower.com/extensions\" xmlns:bank=\"http://somebank.com\">\n\t<xsl:template match=\"/\">\n\t<?xml-stylesheet href=SomeBankCheckService.xsd?>\n\t<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\">\n\t<soapenv:Body>\n\t\t<bank:CheckResponseElement xmlns:bank=\"http://somebank.com\">\n\t\t<bank:TransactionNum><xsl:value-of select=\"dp:variable('var://service/transaction-id')\"/></bank:TransactionNum>\n\t\t<bank:CheckNum>23423</bank:CheckNum>\n\t\t<xsl:copy-of select=\"/*[local-name()='Envelope']/*[local-name()='Body']/*[local-name()='CheckRequestElement']/*[local-name()='CheckType']\"/>\n\t\t<xsl:copy-of select=\"/*[local-name()='Envelope']/*[local-name()='Body']/*[local-name()='CheckRequestElement']/*[local-name()='PayorAccountID']\"/>\n\t\t<xsl:copy-of select=\"/*[local-name()='Envelope']/*[local-name()='Body']/*[local-name()='CheckRequestElement']/*[local-name()='Payee']\"/>\n\t\t<xsl:copy-of select=\"/*[local-name()='Envelope']/*[local-name()='Body']/*[local-name()='CheckRequestElement']/*[local-name()='Amount']\"/>\n\t\t</bank:CheckResponseElement>\n\t\t</soapenv:Body>\n\t\t</soapenv:Envelope>\n\t</xsl:template>\n</xsl:stylesheet>\n"
+  phase: realized
+  gateway: datapower-gateway
+paths:
+  /checkRequest:
+    post:
+      responses:
+        '200':
+          description: 200 OK
+    parameters:
+      - name: body
+        required: false
+        in: body
+        schema:
+          type: string
+definitions: {}
+tags: []

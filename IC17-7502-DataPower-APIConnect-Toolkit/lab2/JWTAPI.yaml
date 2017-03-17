@@ -1,0 +1,124 @@
+swagger: '2.0'
+info:
+  version: 1.0.0
+  title: jwtAPI
+  x-ibm-name: jwtapi
+host: $(catalog.host)
+basePath: /
+paths:
+  /validate-jwt:
+    get:
+      responses:
+        '200':
+          description: 200 OK
+    parameters:
+      - name: Authorization
+        type: string
+        required: true
+        in: header
+        description: 'Bearer <jwt-token>'
+  /generate-jwt:
+    get:
+      responses:
+        '200':
+          description: 200 OK
+    parameters:
+      - name: iss-claim
+        type: string
+        required: true
+        in: header
+        description: Issuer claim
+      - name: aud-claim
+        type: string
+        required: true
+        in: header
+        description: Audience claim
+securityDefinitions: {}
+security: []
+x-ibm-configuration:
+  assembly:
+    execute:
+      - switch:
+          title: switch
+          case:
+            - condition: "((request.verb==='GET')&&(api.operation.path==='/generate-jwt'))"
+              execute:
+                - jwt-generate:
+                    title: jwt-generate
+                    jwt: generated-jwt
+                    exp-claim: 36000
+                    version: 1.0.0
+                    jwe-enc: A128CBC-HS256
+                    jwe-alg: A256KW
+                    jws-alg: HS256
+                    jti-claim: false
+                    jws-jwk: hs256-key
+                    iss-claim: request.headers.iss-claim
+                    sub-claim: ''
+                    aud-claim: request.headers.aud-claim
+                - gatewayscript:
+                    title: gatewayscript
+                    source: "apim.setvariable('message.body',apim.getvariable('generated-jwt'));   \n"
+            - condition: "request.authorization.indexOf(\"Bearer\") > -1 && request.verb==='GET'&& api.operation.path==='/validate-jwt'"
+              execute:
+                - gatewayscript:
+                    title: gatewayscript
+                    source: |-
+                      var authNode = apim.getvariable('request.headers.authorization');
+
+                      apim.setvariable('input-jwt', authNode.replace(/^Bearer /g, ''));
+                - jwt-validate:
+                    title: jwt-validate
+                    jwt: input-jwt
+                    output-claims: decoded-claims
+                    version: 1.0.0
+                    iss-claim: apic
+                    aud-claim: id1
+                    description: ''
+                    jws-jwk: hs256-key
+                - gatewayscript:
+                    title: gatewayscript
+                    source: "apim.setvariable('message.body',apim.getvariable('decoded-claims')); \n"
+            - otherwise:
+                - set-variable:
+                    title: set-variable
+                    actions:
+                      - value: '302'
+                        set: message.status.code
+                      - set: message.status.reason
+                        value: Found
+                      - set: message.headers.Location
+                        value: 'https://myidp.ibm.com'
+    catch:
+      - errors:
+          - RuntimeError
+        execute:
+          - set-variable:
+              title: set-variable
+              actions:
+                - value: '400'
+                  set: message.status.code
+                - set: message.status.reason
+                  value: Bad request
+          - gatewayscript:
+              title: gatewayscript
+              source: "apim.setvariable('message.body',apim.getvariable('jwt-validate.error-message'));   \n"
+  enforced: true
+  testable: true
+  phase: realized
+  cors:
+    enabled: true
+  gateway: datapower-gateway
+  properties:
+    hs256-key:
+      value: eyAiYWxnIjogIkhTMjU2IiwgICAia3R5IjogIm9jdCIsICAgInVzZSI6ICJzaWciLCAgICJrIjogIm81eUVyTGFFLWRiZ1ZwU3c2NVJxNTdPQTlkSHlhRjY2UV9FdDVhelBhLVhVamJ5UDB3OWlSV2hSNGtydTA5YUZmUUxYZUlPRElONHVoakVsWUtYdDhuNzZqdDBQamtkMnBxazR0OWFiUkY2dG5MMTlHVjRwZmxmTDZ1dlZLa1A0d2VPaDM5dHFIdDRUbWtCZ0YyUC1nRmhnc3NacGp3cTZsODJmejNkVWhRMm5rem9MQV9DbnlER0xaTGQ3U1oxeXY3M3V6ZkUyT3Q4MTN6bWlnOEtUTUVNV1ZjV1NEdnk2MUYwNnZzXzZMVVJjcV9JRUVldlVpdWJCeEc1UzJha05uV2lnZnBiaFdZak1JNU0yMkZPQ3BkY0RCdDRMN0sxLXlIdDk1U2l6MFFVYjBNTmxUX1g4Rjc2d0g3X0EzN0dwS0tKR3FlYWlOV21Ia2dXZEU4UVdEUSIsICAgImtpZCI6ICJoczI1Ni1rZXkiIH0=
+      description: ''
+      encoded: true
+schemes:
+  - https
+consumes:
+  - application/json
+  - application/xml
+produces:
+  - application/xml
+  - application/json

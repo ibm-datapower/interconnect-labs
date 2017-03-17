@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+	<soap:Header>
+<wsse:Security xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
+<wsse:UsernameToken>
+<wsse:Username>fred</wsse:Username>
+<wsse:Password>smith</wsse:Password>
+</wsse:UsernameToken>
+</wsse:Security>
+</soap:Header>
+	<soap:Body>
+		<bank:CheckRequestElement xmlns:bank="http://somebank.com">
+		<bank:PayorAccountName>Cartoon Studios</bank:PayorAccountName>
+			<bank:PayorAccountID>8458jf8757275234</bank:PayorAccountID>
+			<bank:CheckType>P</bank:CheckType>
+			<bank:Payee>Elmer Funn</bank:Payee>
+			<bank:PayeeAddr>124 East Sunset Drive; Sunset, AL 64846</bank:PayeeAddr>
+			<bank:PayeeRouteNo>03849032874908</bank:PayeeRouteNo>
+			<bank:Amount>999.00</bank:Amount>
+		</bank:CheckRequestElement>
+	</soap:Body>
+</soap:Envelope>
+

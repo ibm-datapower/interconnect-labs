@@ -1,0 +1,30 @@
+---
+product: "1.0.0"
+info:
+  name: "bankback"
+  title: "bankBack"
+  version: "1.0.0"
+visibility:
+  view:
+    enabled: true
+    type: "public"
+    tags: []
+    orgs: []
+  subscribe:
+    enabled: true
+    type: "authenticated"
+    tags: []
+    orgs: []
+apis:
+  bankback:
+    $ref: "bankback_1.0.0.yaml"
+  checking:
+    $ref: "checking_1.0.0.yaml"
+plans:
+  default:
+    title: "Default Plan"
+    description: "Default Plan"
+    approval: false
+    rate-limit:
+      hard-limit: false
+      value: "100/hour"

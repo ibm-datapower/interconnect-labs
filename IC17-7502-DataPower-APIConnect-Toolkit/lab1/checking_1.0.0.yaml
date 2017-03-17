@@ -1,0 +1,522 @@
+swagger: '2.0'
+info:
+  x-ibm-name: checking
+  title: checking
+  version: 1.0.0
+schemes:
+  - https
+host: $(catalog.host)
+basePath: /
+consumes:
+  - application/json
+produces:
+  - application/json
+securityDefinitions:
+  clientIdHeader:
+    type: apiKey
+    in: query
+    name: client_id
+security:
+  - clientIdHeader: []
+x-ibm-configuration:
+  testable: true
+  enforced: true
+  cors:
+    enabled: true
+  assembly:
+    execute:
+      - map:
+          title: 'checkRequest: input'
+          inputs:
+            CheckRequestElement:
+              schema:
+                $ref: '#/definitions/JSONCheckRequest'
+              variable: request.body.CheckRequestElement
+              content: application/json
+          outputs:
+            body:
+              schema:
+                $ref: >-
+                  #/x-ibm-configuration/targets/SomeBankService/definitions/checkRequestInput
+              variable: message.body
+              content: application/xml
+            content-type:
+              schema:
+                type: string
+              variable: message.headers.content-type
+            SOAPAction:
+              schema:
+                type: string
+              variable: message.headers.SOAPAction
+          actions:
+            - set: content-type
+              default: text/xml
+            - set: SOAPAction
+            - set: body.Envelope.Body.CheckRequestElement.PayorAccountName
+              from: CheckRequestElement.PayorAccountName
+            - set: body.Envelope.Body.CheckRequestElement.PayorAccountID
+              from: CheckRequestElement.PayorAccountID
+            - set: body.Envelope.Body.CheckRequestElement.CheckType
+              from: CheckRequestElement.CheckType
+            - set: body.Envelope.Body.CheckRequestElement.Payee
+              from: CheckRequestElement.Payee
+            - set: body.Envelope.Body.CheckRequestElement.PayeeAddr
+              from: CheckRequestElement.PayeeAddr
+            - set: body.Envelope.Body.CheckRequestElement.PayeeRouteNo
+              from: CheckRequestElement.PayeeRouteNo
+            - set: body.Envelope.Body.CheckRequestElement.Amount
+              from: CheckRequestElement.Amount
+      - if:
+          title: if
+          condition: 'true'
+          execute:
+            - invoke:
+                title: 'checkRequest: invoke'
+                target-url: >-
+                  https://$(api.endpoint.address)/$(api.org.name)/$(env.path)/bankback/checkRequest?client_id=d733581c-26d4-4142-a3df-c7f695ad8dd5
+                timeout: 60
+                verb: POST
+                cache-response: protocol
+                cache-ttl: 900
+                output: checkRequestOut
+            - map:
+                title: 'checkRequest: output'
+                inputs:
+                  input:
+                    schema:
+                      $ref: >-
+                        #/x-ibm-configuration/targets/SomeBankService/definitions/checkRequestOutput
+                    variable: checkRequestOut.body
+                    content: application/xml
+                outputs:
+                  output:
+                    schema:
+                      $ref: '#/definitions/JSONCheckResponse'
+                    variable: message.body
+                    content: application/json
+                actions:
+                  - set: output.TransactionNum
+                    from: input.Envelope.Body.CheckResponseElement.TransactionNum
+                  - set: output.CheckNum
+                    from: input.Envelope.Body.CheckResponseElement.CheckNum
+                  - set: output.CheckType
+                    from: input.Envelope.Body.CheckResponseElement.CheckType
+                  - set: output.PayorAccountID
+                    from: input.Envelope.Body.CheckResponseElement.PayorAccountID
+                  - set: output.Payee
+                    from: input.Envelope.Body.CheckResponseElement.Payee
+                  - set: output.Amount
+                    from: input.Envelope.Body.CheckResponseElement.Amount
+          version: 1.0.0
+  phase: realized
+  targets:
+    SomeBankService:
+      swagger: '2.0'
+      info:
+        title: SomeBankService
+        description: ''
+        x-ibm-name: somebankservice
+        version: 1.0.0
+      schemes:
+        - https
+      basePath: /SomeBankService
+      produces:
+        - application/xml
+      consumes:
+        - text/xml
+      securityDefinitions:
+        clientID:
+          type: apiKey
+          name: X-IBM-Client-Id
+          in: header
+          description: ''
+      security:
+        - clientID: []
+      x-ibm-configuration:
+        type: wsdl
+        wsdl-definition:
+          wsdl: 58c0561ce4b0e13332d3782e
+          service: SomeBankService
+          port: SomeBankPort
+          soap-version: '1.1'
+        assembly:
+          execute:
+            - proxy:
+                title: proxy
+                target-url: 'http://9.33.70.26:22068/SomeBank/services/checking'
+        gateway: datapower-gateway
+        enforced: true
+        testable: true
+        phase: realized
+        cors:
+          enabled: true
+      paths:
+        /accountEnquiry:
+          post:
+            summary: Operation accountEnquiry
+            description: ''
+            operationId: accountEnquiry
+            x-ibm-soap:
+              soap-action: ''
+              soap-operation: '{http://somebank.com}AccountRequestElement'
+            parameters:
+              - in: body
+                name: body
+                required: true
+                schema:
+                  $ref: >-
+                    #/x-ibm-configuration/targets/SomeBankService/definitions/accountEnquiryInput
+            responses:
+              default:
+                description: ''
+                schema:
+                  $ref: >-
+                    #/x-ibm-configuration/targets/SomeBankService/definitions/accountEnquiryOutput
+        /checkRequest:
+          post:
+            summary: Operation checkRequest
+            description: ''
+            operationId: checkRequest
+            x-ibm-soap:
+              soap-action: ''
+              soap-operation: '{http://somebank.com}CheckRequestElement'
+            parameters:
+              - in: body
+                name: body
+                required: true
+                schema:
+                  $ref: >-
+                    #/x-ibm-configuration/targets/SomeBankService/definitions/checkRequestInput
+            responses:
+              default:
+                description: ''
+                schema:
+                  $ref: >-
+                    #/x-ibm-configuration/targets/SomeBankService/definitions/checkRequestOutput
+      definitions:
+        Security:
+          xml:
+            namespace: >-
+              http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd
+            prefix: wsse
+          type: object
+          properties:
+            UsernameToken:
+              type: object
+              properties:
+                Username:
+                  type: string
+                Password:
+                  type: string
+        accountEnquiryInput:
+          type: object
+          properties:
+            Envelope:
+              xml:
+                prefix: soap-env
+                namespace: 'http://schemas.xmlsoap.org/soap/envelope/'
+              type: object
+              properties:
+                Header:
+                  $ref: >-
+                    #/x-ibm-configuration/targets/SomeBankService/definitions/accountEnquiryHeader
+                Body:
+                  type: object
+                  properties:
+                    AccountRequestElement:
+                      $ref: >-
+                        #/x-ibm-configuration/targets/SomeBankService/definitions/AccountRequestElement_bank
+          example: >-
+
+            <soap-env:Envelope
+            xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/">
+             <soap-env:Header>
+              <wsse:Security xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
+               <UsernameToken>
+                <Username>string</Username>
+                <Password>string</Password>
+               </UsernameToken>
+              </wsse:Security>
+             </soap-env:Header>
+             <soap-env:Body>
+              <bank:AccountRequestElement xmlns:bank="http://somebank.com">
+               <bank:accountName><!-- mandatory -->string</bank:accountName>
+               <bank:accountID><!-- mandatory -->string</bank:accountID>
+               <bank:accountType><!-- mandatory -->string</bank:accountType>
+              </bank:AccountRequestElement>
+             </soap-env:Body>
+            </soap-env:Envelope>
+        accountEnquiryHeader:
+          type: object
+          properties:
+            Security:
+              $ref: >-
+                #/x-ibm-configuration/targets/SomeBankService/definitions/Security
+        accountEnquiryOutput:
+          type: object
+          properties:
+            Envelope:
+              xml:
+                prefix: soap-env
+                namespace: 'http://schemas.xmlsoap.org/soap/envelope/'
+              type: object
+              properties:
+                Body:
+                  type: object
+                  properties:
+                    AccountResponseElement:
+                      $ref: >-
+                        #/x-ibm-configuration/targets/SomeBankService/definitions/AccountResponseElement_bank
+          example: >-
+
+            <soap-env:Envelope
+            xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/">
+             <soap-env:Body>
+              <bank:AccountResponseElement xmlns:bank="http://somebank.com">
+               <bank:balance><!-- mandatory -->3.14</bank:balance>
+              </bank:AccountResponseElement>
+             </soap-env:Body>
+            </soap-env:Envelope>
+        checkRequestInput:
+          type: object
+          properties:
+            Envelope:
+              xml:
+                prefix: soap-env
+                namespace: 'http://schemas.xmlsoap.org/soap/envelope/'
+              type: object
+              properties:
+                Header:
+                  $ref: >-
+                    #/x-ibm-configuration/targets/SomeBankService/definitions/checkRequestHeader
+                Body:
+                  type: object
+                  properties:
+                    CheckRequestElement:
+                      $ref: >-
+                        #/x-ibm-configuration/targets/SomeBankService/definitions/CheckRequestElement_bank
+          example: >-
+
+            <soap-env:Envelope
+            xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/">
+             <soap-env:Header>
+              <wsse:Security xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
+               <UsernameToken>
+                <Username>string</Username>
+                <Password>string</Password>
+               </UsernameToken>
+              </wsse:Security>
+             </soap-env:Header>
+             <soap-env:Body>
+              <bank:CheckRequestElement xmlns:bank="http://somebank.com">
+               <bank:PayorAccountName><!-- mandatory -->string</bank:PayorAccountName>
+               <bank:PayorAccountID><!-- mandatory -->string</bank:PayorAccountID>
+               <bank:CheckType><!-- mandatory -->string</bank:CheckType>
+               <bank:Payee><!-- mandatory -->string</bank:Payee>
+               <bank:PayeeAddr>string</bank:PayeeAddr>
+               <bank:PayeeRouteNo>string</bank:PayeeRouteNo>
+               <bank:Amount><!-- mandatory -->3.14</bank:Amount>
+              </bank:CheckRequestElement>
+             </soap-env:Body>
+            </soap-env:Envelope>
+        checkRequestHeader:
+          type: object
+          properties:
+            Security:
+              $ref: >-
+                #/x-ibm-configuration/targets/SomeBankService/definitions/Security
+        checkRequestOutput:
+          type: object
+          properties:
+            Envelope:
+              xml:
+                prefix: soap-env
+                namespace: 'http://schemas.xmlsoap.org/soap/envelope/'
+              type: object
+              properties:
+                Body:
+                  type: object
+                  properties:
+                    CheckResponseElement:
+                      $ref: >-
+                        #/x-ibm-configuration/targets/SomeBankService/definitions/CheckResponseElement_bank
+          example: >-
+
+            <soap-env:Envelope
+            xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/">
+             <soap-env:Body>
+              <bank:CheckResponseElement xmlns:bank="http://somebank.com">
+               <bank:TransactionNum><!-- mandatory -->3</bank:TransactionNum>
+               <bank:CheckNum><!-- mandatory -->3</bank:CheckNum>
+               <bank:CheckType><!-- mandatory -->string</bank:CheckType>
+               <bank:PayorAccountID><!-- mandatory -->string</bank:PayorAccountID>
+               <bank:Payee><!-- mandatory -->string</bank:Payee>
+               <bank:Amount><!-- mandatory -->3.14</bank:Amount>
+              </bank:CheckResponseElement>
+             </soap-env:Body>
+            </soap-env:Envelope>
+        AccountRequestElement_bank:
+          xml:
+            namespace: 'http://somebank.com'
+            prefix: bank
+          type: object
+          properties:
+            accountName:
+              type: string
+            accountID:
+              type: string
+            accountType:
+              type: string
+          required:
+            - accountName
+            - accountID
+            - accountType
+          example: |-
+
+            <bank:AccountRequestElement xmlns:bank="http://somebank.com">
+             <bank:accountName><!-- mandatory -->string</bank:accountName>
+             <bank:accountID><!-- mandatory -->string</bank:accountID>
+             <bank:accountType><!-- mandatory -->string</bank:accountType>
+            </bank:AccountRequestElement>
+        AccountResponseElement_bank:
+          xml:
+            namespace: 'http://somebank.com'
+            prefix: bank
+          type: object
+          properties:
+            balance:
+              type: number
+              format: float
+          required:
+            - balance
+          example: |-
+
+            <bank:AccountResponseElement xmlns:bank="http://somebank.com">
+             <bank:balance><!-- mandatory -->3.14</bank:balance>
+            </bank:AccountResponseElement>
+        CheckRequestElement_bank:
+          xml:
+            namespace: 'http://somebank.com'
+            prefix: bank
+          type: object
+          properties:
+            PayorAccountName:
+              type: string
+            PayorAccountID:
+              type: string
+            CheckType:
+              type: string
+            Payee:
+              type: string
+            PayeeAddr:
+              type: string
+            PayeeRouteNo:
+              type: string
+            Amount:
+              type: number
+              format: float
+          required:
+            - PayorAccountName
+            - PayorAccountID
+            - CheckType
+            - Payee
+            - Amount
+          example: |-
+
+            <bank:CheckRequestElement xmlns:bank="http://somebank.com">
+             <bank:PayorAccountName><!-- mandatory -->string</bank:PayorAccountName>
+             <bank:PayorAccountID><!-- mandatory -->string</bank:PayorAccountID>
+             <bank:CheckType><!-- mandatory -->string</bank:CheckType>
+             <bank:Payee><!-- mandatory -->string</bank:Payee>
+             <bank:PayeeAddr>string</bank:PayeeAddr>
+             <bank:PayeeRouteNo>string</bank:PayeeRouteNo>
+             <bank:Amount><!-- mandatory -->3.14</bank:Amount>
+            </bank:CheckRequestElement>
+        CheckResponseElement_bank:
+          xml:
+            namespace: 'http://somebank.com'
+            prefix: bank
+          type: object
+          properties:
+            TransactionNum:
+              type: integer
+              format: int32
+            CheckNum:
+              type: integer
+              format: int32
+            CheckType:
+              type: string
+            PayorAccountID:
+              type: string
+            Payee:
+              type: string
+            Amount:
+              type: number
+              format: float
+          required:
+            - TransactionNum
+            - CheckNum
+            - CheckType
+            - PayorAccountID
+            - Payee
+            - Amount
+          example: |-
+
+            <bank:CheckResponseElement xmlns:bank="http://somebank.com">
+             <bank:TransactionNum><!-- mandatory -->3</bank:TransactionNum>
+             <bank:CheckNum><!-- mandatory -->3</bank:CheckNum>
+             <bank:CheckType><!-- mandatory -->string</bank:CheckType>
+             <bank:PayorAccountID><!-- mandatory -->string</bank:PayorAccountID>
+             <bank:Payee><!-- mandatory -->string</bank:Payee>
+             <bank:Amount><!-- mandatory -->3.14</bank:Amount>
+            </bank:CheckResponseElement>
+  gateway: datapower-gateway
+paths:
+  /checkRequest:
+    post:
+      responses:
+        '200':
+          description: 200 OK
+    parameters:
+      - name: body
+        required: true
+        in: body
+        schema:
+          type: object
+definitions:
+  JSONCheckResponse:
+    properties:
+      TransactionNum:
+        type: string
+      CheckNum:
+        type: string
+      CheckType:
+        type: string
+      PayorAccountID:
+        type: string
+      Payee:
+        type: string
+      Amount:
+        type: integer
+        format: int32
+    additionalProperties: false
+  JSONCheckRequest:
+    description: ''
+    type: object
+    properties:
+      PayorAccountName:
+        type: string
+      PayorAccountID:
+        type: string
+      CheckType:
+        type: string
+      Payee:
+        type: string
+      PayeeAddr:
+        type: string
+      PayeeRouteNo:
+        type: string
+      Amount:
+        type: number
+    example: "{\"CheckRequestElement\":\r{\"PayorAccountName\":\"Cartoon Studios\", \"PayorAccountID\":\"8458jf8757275234\",\r\"CheckType\":\"P\",\r\"Payee\":\"Elmer Funn\",\r\"PayeeAddr\":\"124 East Sunset Drive; Sunset, AL 64846\", \"PayeeRouteNo\":\"03849032874908\",\r\"Amount\":999}\r}"
+tags: []

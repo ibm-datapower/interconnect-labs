@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions targetNamespace="http://somebank.com" xmlns="http://schemas.xmlsoap.org/wsdl/" xmlns:bank="http://somebank.com" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsdlsoap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	<wsdl:types>
+			<xs:schema elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://somebank.com">
+			<xs:element name="CheckRequestElement" type="bank:CheckRequest"/>
+			<xs:complexType name="CheckRequest">
+				<xs:sequence>
+					<xs:element name="PayorAccountName" type="xs:string"/>
+					<xs:element name="PayorAccountID" type="xs:string"/>
+					<xs:element name="CheckType" type="xs:string"/>
+					<xs:element name="Payee" type="xs:string"/>
+					<xs:element name="PayeeAddr" type="xs:string" minOccurs="0"/>
+					<xs:element name="PayeeRouteNo" type="xs:string" minOccurs="0"/>
+					<xs:element name="Amount" type="xs:float"/>
+					<xs:any namespace="##other" processContents="lax" minOccurs="0"/>
+				</xs:sequence>
+				<xs:anyAttribute namespace="##other" processContents="lax"/>
+			</xs:complexType>
+			<xs:element name="CheckResponseElement" type="bank:CheckResponse"/>
+			<xs:complexType name="CheckResponse">
+				<xs:sequence>
+					<xs:element name="TransactionNum" type="xs:int"/>
+					<xs:element name="CheckNum" type="xs:int"/>
+					<xs:element name="CheckType" type="xs:string"/>
+					<xs:element name="PayorAccountID" type="xs:string"/>
+					<xs:element name="Payee" type="xs:string"/>
+					<xs:element name="Amount" type="xs:float"/>
+					<xs:any namespace="##other" processContents="lax" minOccurs="0"/>
+				</xs:sequence>
+				<xs:anyAttribute namespace="##other" processContents="lax"/>
+			</xs:complexType>
+			<xs:element name="CheckRequestErrorElement" type="bank:CheckRequestError"/>
+			<xs:complexType name="CheckRequestError">
+				<xs:sequence>
+					<xs:element name="TransactionNum" type="xs:int"/>
+					<xs:element name="ErrorNum" type="xs:int"/>
+					<xs:element name="CheckType" type="xs:string"/>
+					<xs:element name="PayorAccountID" type="xs:string"/>
+					<xs:element name="Payee" type="xs:string"/>
+					<xs:element name="ErrorMessage" type="xs:string"/>
+				</xs:sequence>
+			</xs:complexType>
+		</xs:schema>
+			<xs:schema elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://somebank.com">
+			<xs:element name="AccountRequestElement" type="bank:AccountRequest"/>
+			<xs:complexType name="AccountRequest">
+				<xs:sequence>
+					<xs:element name="accountName" type="xs:string"/>
+					<!--  Account Name  -->
+					<xs:element name="accountID" type="xs:string"/>
+					<!--  Account ID  -->
+					<xs:element name="accountType" type="xs:string"/>
+					<!--  Account Type  -->
+				</xs:sequence>
+			</xs:complexType>
+			<xs:element name="AccountResponseElement" type="bank:AccountResponse"/>
+			<xs:complexType name="AccountResponse">
+				<xs:sequence>
+					<xs:element name="balance" type="xs:float"/>
+					<!-- Account Balance  -->
+				</xs:sequence>
+			</xs:complexType>
+		</xs:schema>
+	</wsdl:types>
+	<wsdl:message name="AccountResponse">
+		<wsdl:part element="bank:AccountResponseElement" name="acctresponse"/>
+	</wsdl:message>
+	<wsdl:message name="AccountRequest">
+		<wsdl:part element="bank:AccountRequestElement" name="acctrequest"/>
+	</wsdl:message>
+	<wsdl:message name="CheckResponse">
+		<wsdl:part element="bank:CheckResponseElement" name="checkresponse"/>
+	</wsdl:message>
+	<wsdl:message name="CheckRequest">
+		<wsdl:part element="bank:CheckRequestElement" name="checkrequest"/>
+	</wsdl:message>
+	<wsdl:message name="CheckRequestError">
+		<wsdl:part element="bank:CheckRequestErrorElement" name="checkrequesterror"/>
+	</wsdl:message>
+	<wsdl:portType name="SomeBankPortType">
+		<wsdl:operation name="accountEnquiry">
+			<wsdl:input message="bank:AccountRequest"/>
+			<wsdl:output message="bank:AccountResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="checkRequest">
+			<wsdl:input message="bank:CheckRequest"/>
+			<wsdl:output message="bank:CheckResponse"/>
+			<!-- <wsdl:fault message="bank:CheckRequestError"/>  -->
+		</wsdl:operation>
+	</wsdl:portType>
+	<wsdl:binding name="SomeBankBinding" type="bank:SomeBankPortType">
+		<wsdlsoap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+		<wsdl:operation name="accountEnquiry">
+			<wsdlsoap:operation soapAction=""/>
+			<wsdl:input>
+				<wsdlsoap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<wsdlsoap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="checkRequest">
+			<wsdlsoap:operation soapAction=""/>
+			<wsdl:input>
+				<wsdlsoap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<wsdlsoap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+	<wsdl:service name="SomeBankService">
+		<wsdl:port binding="bank:SomeBankBinding" name="SomeBankPort">
+			<wsdlsoap:address location="http://9.33.70.26:22068/SomeBank/services/checking"/>
+		</wsdl:port> <!--
+		<wsdl:port binding="bank:SomeBankBinding" name="SomeBankPortSignedAndEncrypted">
+			<wsdlsoap:address location="http://10.10.13.35:2068/SomeBank/services/signed"/>
+		</wsdl:port>
+		<wsdl:port binding="bank:SomeBankBinding" name="SomeBankPortEncrypted">
+			<wsdlsoap:address location="http://10.10.13.35:2068/SomeBank/services/encrypted"/>
+		</wsdl:port>
+		<wsdl:port binding="bank:SomeBankBinding" name="SomeBankPortChecking">
+			<wsdlsoap:address location="http://10.10.13.35:2068/SomeBank/services/checking"/>
+		</wsdl:port> -->
+	</wsdl:service>
+</wsdl:definitions>
