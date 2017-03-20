@@ -16,3 +16,5 @@ If the `interconnect-labs` directory is present already. You can either remove i
 command `rm -rf interconnect-labs` then use the `git clone` command in the lab or just leave
 it in place.
 
+In the PDF, some of the dash characters (`-`) are incorrect. They look like the dash character but they are not. If you have a problem with a command, and you copied and pasted it from the PDF, please replace the dashes manually.
+
