@@ -6,6 +6,8 @@ Please follow the instructions in the included PDF file.
 
 In the lab, the virtual machine was simply Ubuntu 14.04 with `docker` and `docker-compose` installed. The lab is written with this in mind, but with small adjustments it can be run on any Docker system.
 
+The video https://www.youtube.com/watch?v=lbd0oIQfhdM shows how DataPower development and continuous integration can work together -- it uses the CI system set up as part of this lab.
+
 ## Erratta:
 
 Common questions during the lab:
