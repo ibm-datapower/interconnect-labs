@@ -14,7 +14,7 @@ Common questions during the lab:
 
 ### Ensure use of the correct VM
 
-Please check to ensure that the correct VM is running. To od this, issue the command:
+Please check to ensure that the correct VM is running. To do this, issue the command:
 
 `docker images`
 
