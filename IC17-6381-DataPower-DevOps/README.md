@@ -12,6 +12,10 @@ The video https://www.youtube.com/watch?v=PYkBQU_kWt8 shows how DataPower develo
 
 Common questions during the lab:
 
+### The lab was written with DataPower 7.5.2
+
+DataPower 7.6 works a little bit differently because DataPower does not run as root inside the container. Whenever the lab references `ibmcom/datapower:latest` you should replace it with `ibmcom/datapower:7.5.2`. Doing so means that you are using the most recent fixpack of DataPower v7.5.2 instead of the most recent fixpack of the most recent release.
+
 ### Ensure use of the correct VM
 
 Please check to ensure that the correct VM is running. To do this, issue the command:
